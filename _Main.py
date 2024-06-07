@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 if __name__ == "__main__":
     day_ranges = [1, 2, 5, 7, 10, 15]
     run_date = (pd.to_datetime("now") - pd.DateOffset(days=3)).strftime("%Y-%m-%d")
-    ISD_start_date = (pd.to_datetime("now") - pd.DateOffset(days=11)).strftime("%Y-%m-%d")
+    ISD_start_date = (pd.to_datetime("now") - pd.DateOffset(days=3)).strftime("%Y-%m-%d")
 
     # Fetch ISD data
     gdf_ISD_stations, df_ISD_data = get_ISD_data(ISD_start_date)
@@ -36,12 +36,13 @@ if __name__ == "__main__":
             df_sampled_ecmwf, df_ISD_data, gdf_ISD_stations, 0, day
         )
 
-        # Create temperature plots
-        make_temp_plots(co_gfs_tmax, da_gfs_grid, day, analysis_date, "GFS")
-        make_temp_plots(co_ecmwf_tmax, da_ecmwf_grid, day, analysis_date, "ECMWF")
 
-        # Create precipitation plots
-        make_precip_plots(co_gfs_precip, da_gfs_grid, day, analysis_date, "GFS")
+
         make_precip_plots(co_ecmwf_precip, da_ecmwf_grid, day, analysis_date, "ECMWF")
+        make_precip_plots(co_gfs_precip, da_gfs_grid, day, analysis_date, "GFS")
+
+        make_temp_plots(co_ecmwf_tmax, da_ecmwf_grid, day, analysis_date, "ECMWF")
+        make_temp_plots(co_gfs_tmax, da_gfs_grid, day, analysis_date, "GFS")
+
 
         plt.close("all")

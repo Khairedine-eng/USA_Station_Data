@@ -12,41 +12,24 @@ def interpolate_model_to_stations(df_model_daily_data, df_ISD_data, gdf_ISD_data
     gdf_ne_country = gdf_ne_country[gdf_ne_country["admin"] == "United States of America"]
 
     # Standardize station IDs
-    df_model_daily_data['station'] = df_model_daily_data['station'].astype(str).str.zfill(11)
+    df_model_daily_data['STATION'] = df_model_daily_data['STATION'].astype(str).str.zfill(11)
     df_ISD_data['station'] = df_ISD_data['station'].astype(str).str.zfill(11)
-    gdf_ISD_data['station'] = gdf_ISD_data['station'].astype(str).str.zfill(11)
-
-    # Print debug information
-    #print("df_model_daily_data columns:", df_model_daily_data.columns)
-    #print("df_ISD_data columns:", df_ISD_data.columns)
-    #print("gdf_ISD_data columns:", gdf_ISD_data.columns)
-
-    # Print uni que stations and date ranges for debugging
-    #print("Unique stations in df_model_daily_data:", df_model_daily_data['station'].unique())
-    #print("Unique stations in df_ISD_data:", df_ISD_data['station'].unique())
-    #print("Date range in df_model_daily_data:", df_model_daily_data['forecast_date'].min(), "-", df_model_daily_data['forecast_date'].max())
-    #print("Date range in df_ISD_data:", df_ISD_data['date_x'].min(), "-", df_ISD_data['date_x'].max())
+    gdf_ISD_data['STATION'] = gdf_ISD_data['STATION'].astype(str).str.zfill(11)
 
     # Merge model and ISD data
     df_join = df_ISD_data.merge(
         df_model_daily_data,
         left_on=["station", "date_x"],
-        right_on=["station", "forecast_date"],
+        right_on=["STATION", "forecast_date"],
     )
-
-    # Print the shape and head of df_join to debug
-    #print("df_join shape:", df_join.shape)
-    #print("df_join head:\n", df_join.head())
 
     df_join = df_join.merge(
-        gdf_ISD_data[["station", "state", "LATITUDE", "LONGITUDE"]],
-        on="station",
+        gdf_ISD_data[["STATION", "state", "LATITUDE", "LONGITUDE"]],
+        left_on="station",
+        right_on="STATION",
     )
 
-    # Print the shape and head of df_join after the second merge to debug
-    #print("df_join after second merge shape:", df_join.shape)
-    #print("df_join after second merge head:\n", df_join.head())
-
+    # Filter and aggregate data
     mask = (df_join["forecast_day"] >= start_day) & (df_join["forecast_day"] <= end_day)
     df_plot = (
         df_join[mask]
@@ -62,19 +45,7 @@ def interpolate_model_to_stations(df_model_daily_data, df_ISD_data, gdf_ISD_data
         )
     )
 
-    # Print the shape and head of df_plot to debug
-    #print("df_plot shape:", df_plot.shape)
-    #print("df_plot head:\n", df_plot.head())
-
     data_verde = df_plot.drop(columns=["station"])
-
-    # Print the shape and head of data_verde to debug
-    #print("data_verde shape:", data_verde.shape)
-    #print("data_verde head:\n", data_verde.head())
-
-    # Additional debug information
-    #print("data_verde LATITUDE isna sum:", data_verde["LATITUDE"].isna().sum())
-    #print("data_verde LONGITUDE isna sum:", data_verde["LONGITUDE"].isna().sum())
 
     data_precip = data_verde[~data_verde.precipitation.isna()]
     data_tmax = data_verde[~data_verde.temperature_maximum.isna()]
@@ -176,10 +147,6 @@ def test_interpolate_model_to_stations():
     if gdf_ISD_stations is not None and df_ISD_data is not None:
         # Sample model data at ISD station locations
         df_sampled_gfs = sample_model_ISD_stations(da_gfs, gdf_ISD_stations)
-
-        # Print debug information
-        #print("df_sampled_gfs station and forecast_date columns:\n", df_sampled_gfs[['station', 'forecast_date']].head())
-        #print("df_ISD_data station and date_x columns:\n", df_ISD_data[['station', 'date_x']].head())
 
         # Interpolate model data to stations
         coordinates_precip, coordinates_tmax, da_grid = interpolate_model_to_stations(
